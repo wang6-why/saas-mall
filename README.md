@@ -2,7 +2,11 @@
 
 Spring Boot 2.7 + MyBatis-Plus + Redis + RabbitMQ + Vue3 + MySQL。共享库共享表方案，MyBatis-Plus `TenantLineInnerInterceptor` 行级租户隔离，业务代码零侵入；内置高并发秒杀链路（Lua 预扣 + MQ 异步落库 + 乐观锁防超卖）。
 
+![banner](docs/banner.png)
+
 ## 架构
+
+![architecture](docs/architecture.svg)
 
 ```
 ┌──────────────┐   HTTP    ┌───────────────────────────────────────┐
