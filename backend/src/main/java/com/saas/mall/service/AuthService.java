@@ -2,6 +2,7 @@ package com.saas.mall.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.saas.mall.common.JwtUtil;
+import com.saas.mall.common.PasswordUtil;
 import com.saas.mall.entity.SysUser;
 import com.saas.mall.entity.Tenant;
 import com.saas.mall.mapper.SysUserMapper;
@@ -28,12 +29,17 @@ public class AuthService {
     /** 登录：用租户管理员账号登录，返回 token */
     public Map<String, Object> login(String username, String password) {
         Tenant tenant = tenantMapper.selectOne(new LambdaQueryWrapper<Tenant>()
-                .eq(Tenant::getAdminUser, username).eq(Tenant::getAdminPwd, password));
-        if (tenant == null) {
+                .eq(Tenant::getAdminUser, username));
+        if (tenant == null || !PasswordUtil.matches(password, tenant.getAdminPwd())) {
             throw new RuntimeException("账号或密码错误");
         }
         if (tenant.getStatus() == null || tenant.getStatus() != 1) {
             throw new RuntimeException("租户已被禁用");
+        }
+        // 存量明文密码登录成功时静默升级为 BCrypt
+        if (!PasswordUtil.isBcrypt(tenant.getAdminPwd())) {
+            tenant.setAdminPwd(PasswordUtil.encode(password));
+            tenantMapper.updateById(tenant);
         }
         String token = jwtUtil.createToken(tenant.getId(), tenant.getId());
         Map<String, Object> result = new HashMap<>();
@@ -54,14 +60,15 @@ public class AuthService {
         Tenant tenant = new Tenant();
         tenant.setName(name);
         tenant.setAdminUser(adminUser);
-        tenant.setAdminPwd(adminPwd);
+        tenant.setAdminPwd(PasswordUtil.encode(adminPwd));
         tenant.setStatus(1);
+        tenant.setPlanId(1L); // 默认免费版
         tenantMapper.insert(tenant);
 
         SysUser user = new SysUser();
         user.setTenantId(tenant.getId());
         user.setUsername(adminUser);
-        user.setPassword(adminPwd);
+        user.setPassword(PasswordUtil.encode(adminPwd));
         user.setRole("admin");
         sysUserMapper.insert(user);
         return tenant;

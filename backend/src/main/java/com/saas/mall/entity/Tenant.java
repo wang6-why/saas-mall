@@ -14,4 +14,6 @@ public class Tenant {
     private String adminUser;
     private String adminPwd;
     private Integer status;
+    private Long planId;
+    private java.time.LocalDateTime expireTime;
 }

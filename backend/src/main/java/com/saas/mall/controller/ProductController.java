@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.saas.mall.common.R;
 import com.saas.mall.common.TenantContext;
 import com.saas.mall.entity.Product;
+import com.saas.mall.service.PlanService;
 import com.saas.mall.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +15,11 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final PlanService planService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, PlanService planService) {
         this.productService = productService;
+        this.planService = planService;
     }
 
     @GetMapping("/list")
@@ -31,6 +34,11 @@ public class ProductController {
 
     @PostMapping
     public R<Boolean> save(@RequestBody Product product) {
+        // 套餐配额校验：企业 SaaS 的收费边界，超限直接拒绝
+        String deny = planService.checkProductQuota(TenantContext.get());
+        if (deny != null) {
+            return R.fail(deny);
+        }
         product.setTenantId(TenantContext.get());
         return R.ok(productService.save(product));
     }

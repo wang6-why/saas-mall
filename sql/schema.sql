@@ -87,3 +87,36 @@ INSERT INTO product (tenant_id, name, price, stock) VALUES
 (1, 'A店-赛博机械键盘', 599.00, 100),
 (1, 'A店-霓虹鼠标垫',   99.00,  500),
 (2, 'B店-蒸汽波卫衣',   299.00, 200);
+
+-- ============ 套餐计费（平台级） ============
+CREATE TABLE plan (
+    id              BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name            VARCHAR(64) NOT NULL,
+    price           DECIMAL(10,2) NOT NULL COMMENT '月费',
+    max_products    INT NOT NULL COMMENT '商品数上限，-1不限',
+    seckill_enabled TINYINT DEFAULT 0 COMMENT '是否开放秒杀',
+    remark          VARCHAR(128)
+) COMMENT '套餐';
+
+ALTER TABLE tenant ADD COLUMN plan_id BIGINT DEFAULT 1;
+ALTER TABLE tenant ADD COLUMN expire_time DATETIME COMMENT '套餐到期时间';
+
+-- 审计日志（隔离）
+CREATE TABLE audit_log (
+    id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+    tenant_id  BIGINT NOT NULL,
+    method     VARCHAR(10),
+    path       VARCHAR(256),
+    body       VARCHAR(1024),
+    result     VARCHAR(16) COMMENT 'success/error',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_tenant (tenant_id)
+) COMMENT '操作审计';
+
+INSERT INTO plan (name, price, max_products, seckill_enabled, remark) VALUES
+('免费版', 0.00,    5, 0, '5个商品，无秒杀'),
+('专业版', 299.00, 50, 1, '50个商品，开放秒杀');
+
+-- A店升级专业版，B店免费版（演示配额差异）
+UPDATE tenant SET plan_id = 2 WHERE id = 1;
+UPDATE tenant SET plan_id = 1 WHERE id = 2;

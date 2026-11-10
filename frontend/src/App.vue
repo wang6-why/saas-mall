@@ -4,6 +4,7 @@ import Login from './views/Login.vue'
 import Products from './views/Products.vue'
 import Orders from './views/Orders.vue'
 import Seckill from './views/Seckill.vue'
+import Plans from './views/Plans.vue'
 
 const token = localStorage.getItem('token')
 const tenantName = localStorage.getItem('tenantName') || ''
@@ -26,12 +27,14 @@ function logout() {
         <span :class="{active: tab==='seckill'}" @click="tab='seckill'">⚡ 秒杀</span>
         <span :class="{active: tab==='products'}" @click="tab='products'">🛒 商品管理</span>
         <span :class="{active: tab==='orders'}" @click="tab='orders'">📦 订单</span>
+        <span :class="{active: tab==='plans'}" @click="tab='plans'">💳 套餐</span>
       </nav>
       <button class="btn" @click="logout">退出登录</button>
     </aside>
     <main class="main">
       <Seckill v-if="tab==='seckill'" />
       <Products v-else-if="tab==='products'" />
+      <Plans v-else-if="tab==='plans'" />
       <Orders v-else />
     </main>
   </div>
