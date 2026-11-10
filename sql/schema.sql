@@ -41,7 +41,7 @@ CREATE TABLE orders (
     order_no   VARCHAR(64) NOT NULL,
     user_id    BIGINT NOT NULL,
     amount     DECIMAL(10,2) NOT NULL,
-    status     TINYINT DEFAULT 1 COMMENT '1待支付 2已支付 3已取消',
+    status     TINYINT DEFAULT 0 COMMENT '0排队中 1待支付 2已支付 3已取消',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     KEY idx_tenant (tenant_id)
 ) COMMENT '订单';
@@ -55,6 +55,24 @@ CREATE TABLE order_item (
     price      DECIMAL(10,2) NOT NULL,
     KEY idx_tenant (tenant_id)
 ) COMMENT '订单明细';
+
+-- 秒杀活动（隔离）：秒杀价 + Redis 配额
+CREATE TABLE seckill_activity (
+    id            BIGINT PRIMARY KEY AUTO_INCREMENT,
+    tenant_id     BIGINT NOT NULL,
+    product_id    BIGINT NOT NULL,
+    seckill_price DECIMAL(10,2) NOT NULL,
+    total_stock   INT NOT NULL COMMENT 'Redis 预扣总数',
+    start_time    DATETIME NOT NULL,
+    end_time      DATETIME NOT NULL,
+    status        TINYINT DEFAULT 1 COMMENT '1进行中 0结束',
+    KEY idx_tenant (tenant_id)
+) COMMENT '秒杀活动';
+
+-- 演示秒杀：A店键盘 199 元限量 10 台，B店卫衣 99 元限量 5 件
+INSERT INTO seckill_activity (tenant_id, product_id, seckill_price, total_stock, start_time, end_time) VALUES
+(1, 1, 199.00, 10, '2026-01-01 00:00:00', '2030-01-01 00:00:00'),
+(2, 3, 99.00, 5, '2026-01-01 00:00:00', '2030-01-01 00:00:00');
 
 -- 演示数据：两个租户
 INSERT INTO tenant (name, admin_user, admin_pwd) VALUES

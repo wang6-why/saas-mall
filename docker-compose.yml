@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: saas-mall-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: saas_mall
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - saas-mall-mysql:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: saas-mall-redis
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: saas-mall-rabbitmq
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # 管理台 http://localhost:15672 guest/guest
+
+volumes:
+  saas-mall-mysql:

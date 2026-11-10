@@ -4,7 +4,7 @@ import { listOrders, payOrder } from '../api'
 
 const orders = ref([])
 const msg = ref('')
-const STATUS = { 1: ['待支付', 'wait'], 2: ['已支付', 'ok'], 3: ['已取消', 'no'] }
+const STATUS = { 0: ['排队中', 'wait'], 1: ['待支付', 'wait'], 2: ['已支付', 'ok'], 3: ['已取消', 'no'] }
 
 async function load() {
   const res = await listOrders()
